@@ -11,34 +11,43 @@ namespace api.Mappers
     {
         public static CommentDto ToCommentDto(this Comment commentModel)
         {
+            if (commentModel == null)
+            {
+                throw new ArgumentNullException(nameof(commentModel), "Comment model cannot be null");
+            }
+
+            // Kiểm tra AppUser có null không
+            var createdBy = commentModel.AppUser?.UserName ?? "Unknown"; // Nếu AppUser hoặc UserName là null, sử dụng "Unknown"
+
             return new CommentDto
             {
                 Id = commentModel.Id,
                 Title = commentModel.Title,
                 Content = commentModel.Content,
                 CreatedOn = commentModel.CreatedOn,
-                CreatedBy = commentModel.AppUser.UserName,
-                StockId = commentModel.StockId
+                CreatedBy = createdBy,
+                DocumentId = commentModel.DocumentID
             };
         }
 
-        public static Comment ToCommentFromCreate(this CreateCommentDto commentDto, int stockId)
+
+        public static Comment ToCommentFromCreate(this CreateCommentDto commentDto, int documentId)
         {
             return new Comment
             {
                 Title = commentDto.Title,
                 Content = commentDto.Content,
-                StockId = stockId
+                DocumentID = documentId
             };
         }
 
-        public static Comment ToCommentFromUpdate(this UpdateCommentRequestDto commentDto, int stockId)
+        public static Comment ToCommentFromUpdate(this UpdateCommentRequestDto commentDto, int documentId)
         {
             return new Comment
             {
                 Title = commentDto.Title,
                 Content = commentDto.Content,
-                StockId = stockId
+                DocumentID = documentId
             };
         }
 

@@ -51,13 +51,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "0f5739e8-f0c0-4e9a-8b65-9a75e5a670c9",
+                            Id = "a03975f2-4478-4381-b4e5-35ee5335b331",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "6031fd95-3f9c-436c-987e-87c5daee55e0",
+                            Id = "2e4d9825-44f8-4276-ba5c-761392d4a192",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -234,6 +234,38 @@ namespace api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.CareAbout", b =>
+                {
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AppUserId", "DocumentId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.ToTable("CareAbout");
+                });
+
+            modelBuilder.Entity("api.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Category");
+                });
+
             modelBuilder.Entity("api.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
@@ -253,7 +285,7 @@ namespace api.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("StockId")
+                    b.Property<int?>("DocumentID")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -264,27 +296,12 @@ namespace api.Migrations
 
                     b.HasIndex("AppUserId");
 
-                    b.HasIndex("StockId");
+                    b.HasIndex("DocumentID");
 
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("api.Models.Portfolio", b =>
-                {
-                    b.Property<string>("AppUserId")
-                        .HasColumnType("nvarchar(450)");
-
-                    b.Property<int>("StockId")
-                        .HasColumnType("int");
-
-                    b.HasKey("AppUserId", "StockId");
-
-                    b.HasIndex("StockId");
-
-                    b.ToTable("Portfolios");
-                });
-
-            modelBuilder.Entity("api.Models.Stock", b =>
+            modelBuilder.Entity("api.Models.Document", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -292,30 +309,26 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CompanyName")
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DocumentUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Industry")
+                    b.Property<string>("DocummentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("LastDiv")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("MarketCap")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("Purchase")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Symbol")
+                    b.Property<string>("Summary")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stocks");
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -369,6 +382,25 @@ namespace api.Migrations
                         .IsRequired();
                 });
 
+            modelBuilder.Entity("api.Models.CareAbout", b =>
+                {
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany("CareAbout")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Models.Document", "Document")
+                        .WithMany("CareAbout")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Document");
+                });
+
             modelBuilder.Entity("api.Models.Comment", b =>
                 {
                     b.HasOne("api.Models.AppUser", "AppUser")
@@ -377,44 +409,41 @@ namespace api.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("api.Models.Stock", "Stock")
+                    b.HasOne("api.Models.Document", "Document")
                         .WithMany("Comments")
-                        .HasForeignKey("StockId");
+                        .HasForeignKey("DocumentID");
 
                     b.Navigation("AppUser");
 
-                    b.Navigation("Stock");
+                    b.Navigation("Document");
                 });
 
-            modelBuilder.Entity("api.Models.Portfolio", b =>
+            modelBuilder.Entity("api.Models.Document", b =>
                 {
-                    b.HasOne("api.Models.AppUser", "AppUser")
-                        .WithMany("Portfolios")
-                        .HasForeignKey("AppUserId")
+                    b.HasOne("api.Models.Category", "Category")
+                        .WithMany("Documents")
+                        .HasForeignKey("CategoryId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("api.Models.Stock", "Stock")
-                        .WithMany("Portfolios")
-                        .HasForeignKey("StockId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("AppUser");
-
-                    b.Navigation("Stock");
+                    b.Navigation("Category");
                 });
 
             modelBuilder.Entity("api.Models.AppUser", b =>
                 {
-                    b.Navigation("Portfolios");
+                    b.Navigation("CareAbout");
                 });
 
-            modelBuilder.Entity("api.Models.Stock", b =>
+            modelBuilder.Entity("api.Models.Category", b =>
                 {
-                    b.Navigation("Comments");
+                    b.Navigation("Documents");
+                });
 
-                    b.Navigation("Portfolios");
+            modelBuilder.Entity("api.Models.Document", b =>
+                {
+                    b.Navigation("CareAbout");
+
+                    b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618
         }

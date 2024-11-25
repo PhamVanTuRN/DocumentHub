@@ -11,7 +11,7 @@ function App() {
       <UserProvider>
         <Navbar />
         <Outlet />
-        <ToastContainer />
+        {/* <ToastContainer /> */}
       </UserProvider>
     </>
   );

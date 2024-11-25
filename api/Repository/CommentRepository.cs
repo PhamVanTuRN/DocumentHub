@@ -39,20 +39,37 @@ namespace api.Repository
             return commentModel;
         }
 
+        // public async Task<List<Comment>> GetAllAsync(CommentQueryObject queryObject)
+        // {
+        //     var comments = _context.Comments.Include(a => a.AppUser).AsQueryable();
+
+        //     if (!string.IsNullOrWhiteSpace(queryObject.DocumentName))
+        //     {
+        //         comments = comments.Where(s => s.Document.DocummentName == queryObject.DocumentName);
+        //     };
+        //     if (queryObject.IsDecsending == true)
+        //     {
+        //         comments = comments.OrderByDescending(c => c.CreatedOn);
+        //     }
+        //     return await comments.ToListAsync();
+        // }
         public async Task<List<Comment>> GetAllAsync(CommentQueryObject queryObject)
         {
             var comments = _context.Comments.Include(a => a.AppUser).AsQueryable();
 
-            if (!string.IsNullOrWhiteSpace(queryObject.Symbol))
+            if (!string.IsNullOrWhiteSpace(queryObject.DocumentName))
             {
-                comments = comments.Where(s => s.Stock.Symbol == queryObject.Symbol);
-            };
+                comments = comments.Where(s => s.Document != null && s.Document.DocummentName == queryObject.DocumentName);
+            }
+
             if (queryObject.IsDecsending == true)
             {
                 comments = comments.OrderByDescending(c => c.CreatedOn);
             }
+
             return await comments.ToListAsync();
         }
+
 
         public async Task<Comment?> GetByIdAsync(int id)
         {

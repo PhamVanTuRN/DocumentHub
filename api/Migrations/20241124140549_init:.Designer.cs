@@ -12,8 +12,8 @@ using api.Data;
 namespace api.Migrations
 {
     [DbContext(typeof(ApplicationDBContext))]
-    [Migration("20231230165657_SeedRole")]
-    partial class SeedRole
+    [Migration("20241124140549_init:")]
+    partial class init
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -54,13 +54,13 @@ namespace api.Migrations
                     b.HasData(
                         new
                         {
-                            Id = "79f392bf-21e3-4e59-a899-f2a066f3884a",
+                            Id = "a03975f2-4478-4381-b4e5-35ee5335b331",
                             Name = "Admin",
                             NormalizedName = "ADMIN"
                         },
                         new
                         {
-                            Id = "5849bcbd-fa3c-46ad-8ac1-00ff8cd9a6d7",
+                            Id = "2e4d9825-44f8-4276-ba5c-761392d4a192",
                             Name = "User",
                             NormalizedName = "USER"
                         });
@@ -237,6 +237,38 @@ namespace api.Migrations
                     b.ToTable("AspNetUsers", (string)null);
                 });
 
+            modelBuilder.Entity("api.Models.CareAbout", b =>
+                {
+                    b.Property<string>("AppUserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<int>("DocumentId")
+                        .HasColumnType("int");
+
+                    b.HasKey("AppUserId", "DocumentId");
+
+                    b.HasIndex("DocumentId");
+
+                    b.ToTable("CareAbout");
+                });
+
+            modelBuilder.Entity("api.Models.Category", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Name")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Category");
+                });
+
             modelBuilder.Entity("api.Models.Comment", b =>
                 {
                     b.Property<int>("Id")
@@ -245,6 +277,10 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<string>("AppUserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("Content")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -252,7 +288,7 @@ namespace api.Migrations
                     b.Property<DateTime>("CreatedOn")
                         .HasColumnType("datetime2");
 
-                    b.Property<int?>("StockId")
+                    b.Property<int?>("DocumentID")
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
@@ -261,12 +297,14 @@ namespace api.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("StockId");
+                    b.HasIndex("AppUserId");
+
+                    b.HasIndex("DocumentID");
 
                     b.ToTable("Comments");
                 });
 
-            modelBuilder.Entity("api.Models.Stock", b =>
+            modelBuilder.Entity("api.Models.Document", b =>
                 {
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
@@ -274,30 +312,26 @@ namespace api.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
-                    b.Property<string>("CompanyName")
+                    b.Property<int>("CategoryId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("DocumentUrl")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("Industry")
+                    b.Property<string>("DocummentName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<decimal>("LastDiv")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("MarketCap")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("Purchase")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("Symbol")
+                    b.Property<string>("Summary")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Stocks");
+                    b.HasIndex("CategoryId");
+
+                    b.ToTable("Documents");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -351,17 +385,67 @@ namespace api.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("api.Models.Comment", b =>
+            modelBuilder.Entity("api.Models.CareAbout", b =>
                 {
-                    b.HasOne("api.Models.Stock", "Stock")
-                        .WithMany("Comments")
-                        .HasForeignKey("StockId");
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany("CareAbout")
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
-                    b.Navigation("Stock");
+                    b.HasOne("api.Models.Document", "Document")
+                        .WithMany("CareAbout")
+                        .HasForeignKey("DocumentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Document");
                 });
 
-            modelBuilder.Entity("api.Models.Stock", b =>
+            modelBuilder.Entity("api.Models.Comment", b =>
                 {
+                    b.HasOne("api.Models.AppUser", "AppUser")
+                        .WithMany()
+                        .HasForeignKey("AppUserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("api.Models.Document", "Document")
+                        .WithMany("Comments")
+                        .HasForeignKey("DocumentID");
+
+                    b.Navigation("AppUser");
+
+                    b.Navigation("Document");
+                });
+
+            modelBuilder.Entity("api.Models.Document", b =>
+                {
+                    b.HasOne("api.Models.Category", "Category")
+                        .WithMany("Documents")
+                        .HasForeignKey("CategoryId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Category");
+                });
+
+            modelBuilder.Entity("api.Models.AppUser", b =>
+                {
+                    b.Navigation("CareAbout");
+                });
+
+            modelBuilder.Entity("api.Models.Category", b =>
+                {
+                    b.Navigation("Documents");
+                });
+
+            modelBuilder.Entity("api.Models.Document", b =>
+                {
+                    b.Navigation("CareAbout");
+
                     b.Navigation("Comments");
                 });
 #pragma warning restore 612, 618

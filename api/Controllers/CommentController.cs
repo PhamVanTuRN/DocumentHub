@@ -19,21 +19,21 @@ namespace api.Controllers
     public class CommentController : ControllerBase
     {
         private readonly ICommentRepository _commentRepo;
-        private readonly IStockRepository _stockRepo;
+        private readonly IDocumentRepository _documentRepo;
         private readonly UserManager<AppUser> _userManager;
-        private readonly IFMPService _fmpService;
+
         public CommentController(ICommentRepository commentRepo,
-        IStockRepository stockRepo, UserManager<AppUser> userManager,
-        IFMPService fmpService)
+        IDocumentRepository documentRepo, UserManager<AppUser> userManager
+        )
         {
             _commentRepo = commentRepo;
-            _stockRepo = stockRepo;
+            _documentRepo = documentRepo;
             _userManager = userManager;
-            _fmpService = fmpService;
+
         }
 
         [HttpGet]
-        [Authorize]
+        // [Authorize]
         public async Task<IActionResult> GetAll([FromQuery] CommentQueryObject queryObject)
         {
             if (!ModelState.IsValid)
@@ -63,32 +63,38 @@ namespace api.Controllers
         }
 
         [HttpPost]
-        [Route("{symbol:alpha}")]
-        public async Task<IActionResult> Create([FromRoute] string symbol, CreateCommentDto commentDto)
+        [Route("{documentId:int}")]
+        public async Task<IActionResult> Create([FromRoute] int documentId, CreateCommentDto commentDto)
         {
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var stock = await _stockRepo.GetBySymbolAsync(symbol);
+            bool? documentExists = await _documentRepo.DocumentExists(documentId);
 
-            if (stock == null)
+            if (documentExists == null)
             {
-                stock = await _fmpService.FindStockBySymbolAsync(symbol);
-                if (stock == null)
-                {
-                    return BadRequest("Stock does not exists");
-                }
-                else
-                {
-                    await _stockRepo.CreateAsync(stock);
-                }
+                return BadRequest("Document existence is unknown");
             }
+
+            if (!documentExists.Value)
+            {
+                return BadRequest("Document does not exist");
+            }
+
 
             var username = User.GetUsername();
             var appUser = await _userManager.FindByNameAsync(username);
 
-            var commentModel = commentDto.ToCommentFromCreate(stock.Id);
-            commentModel.AppUserId = appUser.Id;
+            var commentModel = commentDto.ToCommentFromCreate(documentId);
+            if (appUser != null)
+            {
+                commentModel.AppUserId = appUser.Id;
+            }
+            else
+            {
+                // Xử lý trường hợp appUser là null (ví dụ: log, thông báo lỗi, gán giá trị mặc định, v.v.)
+                throw new InvalidOperationException("AppUser cannot be null.");
+            }
             await _commentRepo.CreateAsync(commentModel);
             return CreatedAtAction(nameof(GetById), new { id = commentModel.Id }, commentModel.ToCommentDto());
         }

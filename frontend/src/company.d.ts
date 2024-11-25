@@ -15,13 +15,13 @@ export interface CompanyProfile {
   lastDiv: number;
   range: string;
   changes: number;
-  companyName: string;
+  DocumentName: string;
   currency: string;
   cik: string;
   isin: string;
   exchange: string;
   exchangeShortName: string;
-  industry: string;
+  DocumentUrl: string;
   website: string;
   description: string;
   ceo: string;

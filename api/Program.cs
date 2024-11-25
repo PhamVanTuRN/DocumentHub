@@ -89,13 +89,18 @@ builder.Services.AddAuthentication(options =>
 });
 
 
-builder.Services.AddScoped<IStockRepository, StockRepository>();
+
+builder.Services.AddScoped<IDocumentRepository, DocumentRepository>();
 builder.Services.AddScoped<ICommentRepository, CommentRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<IPortfolioRepository, PortfolioRepository>();
-builder.Services.AddScoped<IFMPService, FMPService>();
-builder.Services.AddHttpClient<IFMPService, FMPService>();
+builder.Services.AddScoped<ICareAboutRepository, PortfolioRepository>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
 
+builder.Services.AddLogging(config =>
+{
+    config.AddConsole(); // Log to console
+    config.AddDebug();   // Log to debug output
+});
 
 var app = builder.Build();
 
